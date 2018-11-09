@@ -1,0 +1,54 @@
+<Root>:
+    input: input_Box
+    output: output_Error
+    orientation: 'vertical'
+    spacing: 20
+    padding: 10
+    canvas:
+        Color:
+            rgb: .89, .87, .87
+        Rectangle:
+            size: self.size
+
+    TextInput:
+        id: input_Box
+        text: '/Your code is here/'
+
+    BoxLayout:
+        spacing: 5
+        TextInput:
+            id: output_Error
+            readonly: True
+        TextInput:
+            id: form14
+            readonly: True
+
+
+        BoxLayout:
+            padding: 10
+            orientation: 'vertical'
+            spacing: 20
+
+
+            Button:
+                id: f_but1
+                text: 'Run'
+                font_size: '15sp'
+                size_hint: .6,.25
+                background_normal: ''
+                background_color: .25, .7, .16,1
+                on_press: root.out()
+            Button:
+                id: f_but2
+                text: 'Show'
+                size_hint: .6,.25
+                background_normal: ''
+                background_color: .72, .76, .3,1
+                on_press: root.remove_widget
+
+
+
+
+
+
+
