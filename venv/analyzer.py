@@ -17,6 +17,9 @@
     4. Наличие лишних символов в строке
 '''
 
+''' написать массив шаблонных ошибок "Название(тип) ошибки(+ можно дописать рекомендацию
+(ожидался for или индедификатор не может начинаться с цифры и т.п.))). Строка(где возникла оштбка" '''
+
 class Analyzer:
 
     def __init__(self):
@@ -47,7 +50,8 @@ class Analyzer:
             str_number += _str[i]
             count_symbol += 1
             i += 1
-        if i == len(_str)or((count_symbol <= 5) and (_str[i] == ' ' or _str[i] == '\t')):
+        if i == len(_str)or((count_symbol <= 5) and (_str[i] == ' ' or _str[i] == '\t' or _str[i] == '+'
+                                                     or _str[i] == '-' or _str[i] == '*' or _str[i] == '/')):
             number = int(str_number)
             if minus:
                 number = -number
@@ -79,7 +83,7 @@ class Analyzer:
                 indentifier += _str[i]
                 i += 1
                 count_symbol += 1
-            if i == len(_str) or (count_symbol <= max_symbol and (_str[i] == ' ' or _str[i] == '\t')):
+            if i == len(_str) or (count_symbol <= max_symbol):
                 if(indentifier.lower() != "for") and (indentifier.lower() != "to") and\
                         (indentifier.lower() != "exit") and (indentifier.lower() != "step") and\
                         (indentifier.lower() != "next"):
@@ -100,27 +104,27 @@ class Analyzer:
         flags_error = True
         _str = _str.lower()
         i = 0
-        while i < len(_str) and (_str[i] == ' ' or _str[i] == '\t') and (len(_str) - i) >= 12:
+        while (_str[i] == ' ' or _str[i] == '\t') and (len(_str) - i) >= 12:
             i += 1
-        if (len(_str) - i) >= 12 and _str.find("for", i, i+2):
-            i += 3
+        if (len(_str) - i) >= 12 and _str.find("for ", i, i+2):
+            i += 4
             while i < len(_str) and (_str[i] == ' ' or _str[i] == '\t') and (len(_str) - i) >= 8: # maybe not 8
                 i += 1
             i = self.control_indentifier(_str[i:len(_str)], i)
-            if (len(_str) - i) >= 12 and i > 0:
-                while i < len(_str) and (_str[i] == ' ' or _str[i] == '\t') and (len(_str) - i) >= 7: # maybe not 7
+            if (len(_str) - i) >= 7 and i > 0:
+                while (_str[i] == ' ' or _str[i] == '\t') and (len(_str) - i) >= 7: # maybe not 7
                     i += 1
                 if (len(_str) - i) >= 7 and _str[i] == '=':
                     i += 1
-                    while i < len(_str) and (_str[i] == ' ' or _str[i] == '\t') and (len(_str) - i) >= 7:
+                    while (_str[i] == ' ' or _str[i] == '\t') and (len(_str) - i) >= 6:
                         i += 1
                     i = self.control_const(_str[i:len(_str)], i)
                     if(len(_str) - i) >= 6 and i > 0:
                         while i < len(_str) and (_str[i] == ' ' or _str[i] == '\t') and (len(_str) - i) >= 4:
                             i += 1
-                        if (len(_str) - i) >= 3 and _str.find("to", i, i+1):
+                        if (len(_str) - i) >= 4 and _str.find("to", i, i+1):
                             i += 2
-                            while i < len(_str) and (_str[i] == ' ' or _str[i] == '\t') and (len(_str) - i) >= 2:
+                            while (_str[i] == ' ' or _str[i] == '\t') and (len(_str) - i) >= 1:
                                 i += 1
                             i = self.control_const(_str[i:len(_str)], i)
                             if i > 0:
@@ -129,8 +133,8 @@ class Analyzer:
                                 if i == len(_str):
                                     flags_error = False
                                 else:
-                                    if (len(_str) - i) >= 5 and _str.find("step", i, i + 3):
-                                        i += 4
+                                    if (len(_str) - i) >= 6 and _str.find("step ", i, i + 3):
+                                        i += 5
                                         while (len(_str) - i) >= 1 and (_str[i] == ' ' or _str[i] == '\t'):
                                             i += 1
                                         i = self.control_const(_str[i:len(_str)], i)
@@ -150,8 +154,8 @@ class Analyzer:
         while i < len(_str) and (_str[i] == ' ' or _str[i] == '\t') and (len(_str) - i) >= 3:
             i += 1
         i = self.control_indentifier(_str[i:len(_str)], i)
-        if (len(_str) - i) >= 3 and i > 0:
-            while i < len(_str) and (_str[i] == ' ' or _str[i] == '\t') and (len(_str) - i) >= 2:
+        if (len(_str) - i) >= 2 and i > 0:
+            while (_str[i] == ' ' or _str[i] == '\t') and (len(_str) - i) >= 2:
                 i += 1
             if (len(_str) - i) >= 2 and _str[i] == '=':
                 i += 1
@@ -165,7 +169,7 @@ class Analyzer:
                                 i += 1
                             # if i == len(str):
                             #    flag_error = False
-                            if i < len(_str) and (_str[i] == '-' or _str[i] == '+' or _str[i] == '*' or _str[i] == '/'):
+                            if (len(_str)-i) > 1 and (_str[i] == '-' or _str[i] == '+' or _str[i] == '*' or _str[i] == '/'):
                                 i += 1
                         else:
                             break
@@ -234,10 +238,10 @@ class Analyzer:
         self.inds = []
         if len(lines) == 4 or len(lines) == 3:
             if not self.parse_first_line(lines[0]) and not self.parse_second_line(lines[1]):
-                if len(lines)== 3 and not self.parse_fourth_line(lines[2]):
+                if len(lines) == 3 and not self.parse_fourth_line(lines[2]):
                     flag_error = False
                 else:
-                    if not self.parse_third_line(lines[2]) and not self.parse_fourth_line(lines[3]):
+                    if len(lines) == 4 and not self.parse_third_line(lines[2]) and not self.parse_fourth_line(lines[3]):
                         flag_error = False
             if self.inds == [] or self.inds[0] != self.inds[len(self.inds)-1]:
                 flag_error = True
