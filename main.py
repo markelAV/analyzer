@@ -10,9 +10,13 @@ class Root(BoxLayout):
 
     input = ObjectProperty()
     output = ObjectProperty()
+    out_list = ObjectProperty()
     anlyz = analyzer.Analyzer()
 
     def out(self):
+        self.output.text = ''
+        self.out_list.text = ''
+        self.anlyz.error_message = 'ERROR'
         print(self.input.text)
         s = self.input.text
         lines = s.split('\n')
@@ -24,9 +28,16 @@ class Root(BoxLayout):
             i += 1
         b = self.anlyz.main_analyzer_method(kod)
         if not b:
+            str_buf = ', '.join(self.anlyz.inds)
+            output_list = "Список индедификаторов: [" + str_buf + '].\nСписок констант: ['
+            str_buf = ''
+            for i in self.anlyz.consts:
+                str_buf += ' ' + str(i)
+            output_list += str_buf + '].'
             self.output.text = "Good"
+            self.out_list.text = output_list
         else:
-            self.output.text = "Bad"
+            self.output.text = self.anlyz.error_message
 
 
 
