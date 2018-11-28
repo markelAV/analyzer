@@ -1,6 +1,7 @@
 from kivy.app import App
 from kivy.uix.label import Label
 from venv import analyzer
+from venv import anlyser2
 from kivy.uix.boxlayout import BoxLayout
 from kivy.uix.floatlayout import FloatLayout
 from kivy.properties import ObjectProperty
@@ -86,7 +87,7 @@ class AnalyserApp(App):
             print("bad")
 
 if __name__ == '__main__':
-    AnalyserApp().run()
+    #AnalyserApp().run()
     '''anlyz = analyzer.Analyzer()
 
     numbers = {"-32768", "-32767", "32767", "32766", "-123", "123", "38213", "23h21", "7", "123456432"}
@@ -111,3 +112,8 @@ if __name__ == '__main__':
     else:
         print("bad")
 '''
+    line1 = "FOR J12 = 85 TO 100 "
+    an = anlyser2.Anlyser(line1)
+    an.control()
+
+

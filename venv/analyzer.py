@@ -187,8 +187,9 @@ class Analyzer:
                         while i < len(_str) and (_str[i] == ' ' or _str[i] == '\t') and (len(_str) - i) >= 1:
                             i += 1
                         i = self.parse_term(_str[i:len(_str)], i)
-                        flag_not_operation = False
+                        #flag_not_operation = False
                         if i > 0:
+                            flag_not_operation = False
                             while i < len(_str) and (_str[i] == ' ' or _str[i] == '\t'):
                                 i += 1
                             # if i == len(str):
@@ -197,7 +198,7 @@ class Analyzer:
                                 i += 1
                                 flag_not_operation = True
                         else:
-                            if self.error_message == 'ERROR':
+                            if flag_not_operation == '':
                                 self.error_message =''
                             self.error_message += " Ошибка: ожидался терм"
                             return True
@@ -284,4 +285,27 @@ class Analyzer:
                 flag_error = True
                 self.error_message = "Ошибка: Индедификаторы после \"FOR\" и \"NEXT\" дожны совпадать. <" + self.inds[0] +'!=' + self.inds[len(self.inds)-1] + '>'
         return flag_error
+
+def analyze(str):
+    st = 0
+    pos = 0
+    while(pos < len(str) and not st==100 and not st==101):
+        if st==0:
+            if str[pos] == 'f':
+                st = 1
+            else:
+                st = 101
+        elif st == 1:
+            if str[pos] == 'o':
+                st = 2
+            else:
+                st = 101
+
+        elif st == 50:
+            if str[pos].isdigit():
+                st = 51
+            #elif str[pos].isletter():
+                st = 52
+            else:
+                st = 101
 
