@@ -64,12 +64,29 @@ class Anlyser:
         self.consts = []
         self.math_oper=['+', '-', '*', '/']
         self.errors = ["Error key word", "Error inedificator", "Error const"]
-        self.error_message = "ERROR"
+        self.error_message = "good"
         self._str = str
         self._pos = 0
 
+    def check_ident(self, str):
+        if (len(str) <= 8) and not (str in self.key_words):
+            self.inds.append(str)
+            return True
+        elif len(str) > 8:
+            self.error_message = 'identifier name exceeds 8 characters'
+        else:
+            self.error_message = 'identifier name must not match the reserved word'
+        return False
+    def check_const(self, const):
+        if (int(const) > -32768) and (int(const) < 32767):
+            self.consts.append(int(const))
+            return True
+        self.error_message = 'the number should be between -32768 and 32767'
+        return False
 
     def control(self):
+        idn = ""
+        const=""
         flag = False
         state = self.EnumStates.S
         EnumStates = self.EnumStates
@@ -86,132 +103,165 @@ class Anlyser:
                 if state == EnumStates.S:
                     if _str[_pos] == 'f':
                         state = EnumStates.A1
-                        #_pos += 1
                     elif _str[_pos] == ' ' or _str[_pos] == '\t':
-                        state = EnumStates.S#_pos += 1
+                        state = EnumStates.S
                     else:
                         state = EnumStates.Error
+                        self.error_message = "expected character \'F\'"
 
                 elif state == EnumStates.A1:
                     if _str[_pos] == 'o':
                         state = EnumStates.A2
-                        #_pos += 1
                     else:
                         state = EnumStates.Error
+                        self.error_message = "expected character \'O\'"
 
                 elif state == EnumStates.A2:
                     if _str[_pos] == 'r':
                         state = EnumStates.A3
-                       # _pos += 1
                     else:
                         state = EnumStates.Error
+                        self.error_message = "expected character \'R\'"
 
                 elif state == EnumStates.A3:
                     if _str[_pos] == ' ' or _str[_pos] == '\t':
                         state = EnumStates.B
-                        #_pos += 1
                     else:
                         state = EnumStates.Error
+                        self.error_message = "expected character \'space\' or \'Tab\'"
 
                 elif state == EnumStates.B:
                     if _str[_pos] == ' ' or _str[_pos] == '\t':
-                        state = EnumStates.B#_pos += 1
+                        state = EnumStates.B
                     elif _str[_pos].isalpha():
                         state = EnumStates.C
-                        #_pos += 1
+                        idn += _str[_pos]
                     else:
                         state = EnumStates.Error
+                        self.error_message = "expected letter"
 
                 elif state == EnumStates.C:
                     if _str[_pos] == ' ' or _str[_pos] == '\t':
-                        state = EnumStates.C1
-                       # _pos += 1
-                    elif _str[_pos].isalpha() or _str[_pos].isdigit():
+                        if self.check_ident(idn):
+                            state = EnumStates.C1
+                            idn = ''
+                        else:
+                            state = EnumStates.Error
+                    elif _str[_pos].isalpha() or _str[_pos].isdigit(): #replaced by _str[_pos].isalpha() or _str[_pos].isdigit()
                         state = EnumStates.C
+                        idn += _str[_pos]
                     elif _str[_pos] == '=':
-                        state = EnumStates.D
+                        if self.check_ident(idn):
+                            state = EnumStates.D
+                            idn = ''
+                        else:
+                            state = EnumStates.Error
                     else:
                         state = EnumStates.Error
+                        self.error_message = "expected character \'=\' or letter"
 
                 elif state == EnumStates.C1:
                     if _str[_pos] == ' ' or _str[_pos] == '\t':
-                        state = EnumStates.C1#_pos += 1
+                        state = EnumStates.C1
                     elif _str[_pos] == '=':
                         state = EnumStates.D
-                        #_pos += 1
                     else:
                         state = EnumStates.Error
+                        self.error_message = "expected character \'=\'"
 
                 elif state == EnumStates.D:
                     if _str[_pos] == ' ' or _str[_pos] == '\t':
                         state = EnumStates.D
                     elif _str[_pos] == '-':
+                        const += _str[_pos]
                         state = EnumStates.G3
                     elif _str[_pos] == '0':
+                        self.check_const(_str[_pos])
+                        const = ''
                         state = EnumStates.G2
                     elif _str[_pos].isdigit() and _str[_pos] != '0':
+                        const += _str[_pos]
                         state = EnumStates.G
                     else:
                         state = EnumStates.Error
+                        self.error_message = "Expect is number"
 
                 elif state == EnumStates.G3:
                     if _str[_pos].isdigit() and _str[_pos] != '0':
-                        state = EnumStates.G #_pos += 1
-                    else:
-                        state = EnumStates.Error
-
-                elif state == EnumStates.G2:
-                    if _str[_pos] == ' ' or _str[_pos] == '\t':
-                        state = EnumStates.H #_pos += 1
-                    else:
-                        state = EnumStates.Error
-
-                elif state == EnumStates.G:
-                    if _str[_pos] == ' ' or _str[_pos] == '\t':
-                        state = EnumStates.H #_pos += 1
-                    elif _str[_pos].isdigit():
+                        const += _str[_pos]
                         state = EnumStates.G
                     else:
                         state = EnumStates.Error
+                        self.error_message = 'expected number is unequal to zero'
+
+                elif state == EnumStates.G2:
+                    if _str[_pos] == ' ' or _str[_pos] == '\t':
+                        state = EnumStates.H
+                    else:
+                        state = EnumStates.Error
+                        self.error_message = "expected character \'space\'"
+
+                elif state == EnumStates.G:
+                    if _str[_pos] == ' ' or _str[_pos] == '\t':
+                        if self.check_const(const):
+                            state = EnumStates.H
+                            const = ''
+                        else:
+                            state = EnumStates.Error
+                    elif _str[_pos].isdigit():
+                        const += _str[_pos]
+                        state = EnumStates.G
+                    else:
+                        state = EnumStates.Error
+                        self.error_message = "expected number"
 
                 elif state == EnumStates.H:
                     if _str[_pos] == ' ' or _str[_pos] == '\t':
-                        state = EnumStates.H #_pos += 1
+                        state = EnumStates.H
                     elif _str[_pos] == 't':
                         state = EnumStates.I
                     else:
                         state = EnumStates.Error
+                        self.error_message = "expected character \'T\'"
 
                 elif state == EnumStates.I:
                     if _str[_pos] == 'o':
-                        state = EnumStates.I2 #_pos += 1
+                        state = EnumStates.I2
                     else:
                         state = EnumStates.Error
+                        self.error_message = "expected character \'O\'"
 
                 elif state == EnumStates.I2:
                     if _str[_pos] == ' ' or _str[_pos] == '\t':
-                        state = EnumStates.J #_pos += 1
+                        state = EnumStates.J
                     elif _str[_pos].isdigit():
                         state = EnumStates.G
                     else:
                         state = EnumStates.Error
+                        self.error_message = "expected character \'space\' or \'Tab\'"
 
                 elif state == EnumStates.J:
                     if _str[_pos] == ' ' or _str[_pos] == '\t':
-                        state = EnumStates.J #_pos += 1
+                        state = EnumStates.J
                     elif _str[_pos].isdigit() and _str[_pos] != '0':
+                        const += _str[_pos]
                         state = EnumStates.K
-                    elif _str[_pos] != '-':
+                    elif _str[_pos] == '-':
+                        const += _str[_pos]
                         state = EnumStates.J2
                     elif _str[_pos] == '0':
+                        self.check_const(_str[_pos])
                         state = EnumStates.J3
                     else:
                         state = EnumStates.Error
+                        self.error_message = "expected character \'-\' or number"
 
                 elif state == EnumStates.J2:
                     if _str[_pos].isdigit() and _str[_pos] != '0':
+                        const += _str[_pos]
                         state = EnumStates.K
                     else:
+                        self.error_message = "expected number"
                         state = EnumStates.Error
 
                 elif state == EnumStates.J3:
@@ -220,16 +270,27 @@ class Anlyser:
                     elif _str[_pos] == '\n' or _str[_pos] == '\r':
                         state = EnumStates.L
                     else:
+                        self.error_message = "expected character \'space\' or \'end of line\'"
                         state = EnumStates.Error
 
                 elif state == EnumStates.K:
                     if _str[_pos].isdigit():
+                        const += _str[_pos]
                         state = EnumStates.K
                     elif _str[_pos] == ' ' or _str[_pos] == '\t':
-                        state = EnumStates.M
+                        if self.check_const(const):
+                            state = EnumStates.M
+                            const = ''
+                        else:
+                            state = EnumStates.Error
                     elif _str[_pos] == '\n' or _str[_pos] == '\r':
-                        state = EnumStates.L
+                        if self.check_const(const):
+                            state = EnumStates.L
+                            const = ''
+                        else:
+                            state = EnumStates.Error
                     else:
+                        self.error_message = 'expected number or end of line'
                         state = EnumStates.Error
 
                 elif state == EnumStates.M:
@@ -240,46 +301,58 @@ class Anlyser:
                     elif _str[_pos] == 's':
                         state = EnumStates.M1
                     else:
+                        self.error_message = "expected character \'S\' or \'end of line\'"
                         state = EnumStates.Error
 
                 elif state == EnumStates.M1:
                     if _str[_pos] == 't':
                         state = EnumStates.M2
                     else:
+                        self.error_message = "expected character \'T\'"
                         state = EnumStates.Error
 
                 elif state == EnumStates.M2:
                     if _str[_pos] == 'e':
                         state = EnumStates.M3
                     else:
+                        self.error_message = "expected character \'E\'"
                         state = EnumStates.Error
 
                 elif state == EnumStates.M3:
                     if _str[_pos] == 'p':
                         state = EnumStates.M4
                     else:
+                        self.error_message = "expected character \'P\'"
                         state = EnumStates.Error
 
                 elif state == EnumStates.M4:
-                    if _str[_pos] == ' ':
+                    if _str[_pos] == ' ' or _str[_pos] == '\t':
                         state = EnumStates.N
                     else:
+                        self.error_message = "expected character \'space\' or \'Tab\'"
                         state = EnumStates.Error
 
                 elif state == EnumStates.N:
                     if _str[_pos] == '-':
+                        const += _str[_pos]
                         state = EnumStates.O2
                     elif _str[_pos].isdigit() and _str[_pos] != '0':
+                        const += _str[_pos]
                         state = EnumStates.O
                     elif _str[_pos] == '0':
-                        state = EnumStates.O4
+                        if self.check_const(_str[pos]):
+                            state = EnumStates.O4
+                            const = ''
                     else:
+                        self.error_message = "expected character \'-\' or number"
                         state = EnumStates.Error
 
                 elif state == EnumStates.O2:
                     if _str[_pos].isdigit() and _str[_pos] != '0':
+                        const += _str[_pos]
                         state = EnumStates.O
                     else:
+                        self.error_message = 'expected number is unequal to zero'
                         state = EnumStates.Error
 
                 elif state == EnumStates.O4:
@@ -288,32 +361,57 @@ class Anlyser:
                     elif _str[_pos] == '\n' or _str[_pos] == '\r':
                         state = EnumStates.L
                     else:
+                        self.error_message = 'expected end of line'
                         state = EnumStates.Error
 
                 elif state == EnumStates.O:
                     if _str[_pos].isdigit():
+                        const += _str[_pos]
                         state = EnumStates.O
                     elif _str[_pos] == '\n' or _str[_pos] == '\r':
-                        state = EnumStates.L
+                        if self.check_const(const):
+                            state = EnumStates.L
+                            const = ''
+                        else:
+                            state = EnumStates.Error
+                    elif _str[_pos] == ' ' or _str[_pos] == '\t':
+                        if self.check_const(const):
+                            state = EnumStates.O4
+                            const = ''
+                        else:
+                            state = EnumStates.Error
                     else:
+                        self.error_message = 'expected number or end of line'
                         state = EnumStates.Error
 
                 elif state == EnumStates.L:
                     if _str[_pos] == ' ' or _str[_pos] == '\t':
                         state = EnumStates.L
                     elif _str[_pos].isalpha():
+                        idn += _str[_pos]
                         state = EnumStates.T
                     else:
+                        self.error_message = 'expected letter'
                         state = EnumStates.Error
 
                 elif state == EnumStates.T:
                     if _str[_pos] == ' ' or _str[_pos] == '\t':
-                        state = EnumStates.U1
+                        if self.check_ident(idn):
+                            idn = ''
+                            state = EnumStates.U1
+                        else:
+                            state = EnumStates.Error
                     elif _str[_pos].isalnum():
+                        idn += _str[_pos]
                         state = EnumStates.T
                     elif _str[_pos] == '=':
-                        state = EnumStates.U
+                        if self.check_ident(idn):
+                            idn = ''
+                            state = EnumStates.U
+                        else:
+                            state = EnumStates.Error
                     else:
+                        self.error_message = 'expected letter or number or \'=\''
                         state = EnumStates.Error
                 elif state == EnumStates.U1:
                     if _str[_pos] == ' ' or _str[_pos] == '\t':
@@ -321,38 +419,63 @@ class Anlyser:
                     elif _str[_pos] == '=':
                         state = EnumStates.U
                     else:
+                        self.error_message = 'expected character \'=\''
                         state = EnumStates.Error
 
                 elif state == EnumStates.U:
                     if _str[_pos] == ' ' or _str[_pos] == '\t':
                         state = EnumStates.U
                     elif _str[_pos] == '-':
+                        const += _str[_pos]
                         state = EnumStates.V3
                     elif _str[_pos].isdigit() and _str[_pos] != '0':
+                        const += _str[_pos]
                         state = EnumStates.V2
                     elif _str[_pos] == '0':
-                        state = EnumStates.V4
+                        if self.check_const(_str[_pos]):
+                            const = ''
+                            state = EnumStates.V4
+                        else:
+                            state = EnumStates.Error
                     elif _str[_pos].isalpha():
+                        idn += _str[_pos]
                         state = EnumStates.V
                     else:
+                        self.error_message = 'expected letter or number or character \'-\''
                         state = EnumStates.Error
 
                 elif state == EnumStates.V3:
                     if _str[_pos].isdigit() and _str[_pos] != '0':
+                        const += _str[_pos]
                         state = EnumStates.V2
                     else:
+                        self.error_message = 'expected number'
                         state = EnumStates.Error
 
                 elif state == EnumStates.V2:
                     if _str[_pos].isdigit():
+                        const += _str[_pos]
                         state = EnumStates.V2
-                    elif _str[_pos] == ' ':
-                        state = EnumStates.V5
+                    elif _str[_pos] == ' ' or _str[_pos] == '\t':
+                        if self.check_const(const):
+                            const = ''
+                            state = EnumStates.V5
+                        else:
+                            state = EnumStates.Error
                     elif _str[_pos] in self.math_oper:
-                        state = EnumStates.U
+                        if self.check_const(const):
+                            const = ''
+                            state = EnumStates.U
+                        else:
+                            state = EnumStates.Error
                     elif _str[_pos] == '\n' or _str[_pos] == '\r':
-                        state = EnumStates.X
+                        if self.check_const(const):
+                            const = ''
+                            state = EnumStates.X
+                        else:
+                            state = EnumStates.Error
                     else:
+                        self.error_message = 'expected  number or character \'math operation\' or end of line'
                         state = EnumStates.Error
 
                 elif state == EnumStates.V4:
@@ -363,18 +486,33 @@ class Anlyser:
                     elif _str[_pos] == '\n' or _str[_pos] == '\r':
                         state = EnumStates.X
                     else:
+                        self.error_message = 'expected number or end of line'
                         state = EnumStates.Error
 
                 elif state == EnumStates.V:
                     if _str[_pos].isalpha():
+                        idn += _str[_pos]
                         state = EnumStates.V
                     elif _str[_pos] == ' ' or _str[_pos] == '\t':
-                        state = EnumStates.V5
+                        if self.check_ident(idn):
+                            idn = ''
+                            state = EnumStates.V5
+                        else:
+                            state = EnumStates.Error
                     elif _str[_pos] in self.math_oper:
-                        state = EnumStates.U
+                        if self.check_ident(idn):
+                            idn = ''
+                            state = EnumStates.U
+                        else:
+                            state = EnumStates.Error
                     elif _str[_pos] == '\n' or _str[_pos] == '\r':
-                        state = EnumStates.X
+                        if self.check_ident(idn):
+                            idn = ''
+                            state = EnumStates.X
+                        else:
+                            state = EnumStates.Error
                     else:
+                        self.error_message = 'expected number or letter or math operation or end of line'
                         state = EnumStates.Error
 
                 elif state == EnumStates.V5:
@@ -385,6 +523,7 @@ class Anlyser:
                     elif _str[_pos] == '\n' or _str[_pos] == '\r':
                         state = EnumStates.X
                     else:
+                        self.error_message = 'expected math operation or end of line'
                         state = EnumStates.Error
 
                 elif state == EnumStates.X:
@@ -394,29 +533,36 @@ class Anlyser:
                         state = EnumStates.X1
                     elif _str[_pos] == 'e':
                         state = EnumStates.Y
+                    else:
+                        self.error_message = "expected character \'N\' or character \'E\'"
+                        state = EnumStates.Error
 
                 elif state == EnumStates.Y:
                     if _str[_pos] == 'x':
                         state = EnumStates.Y2
                     else:
+                        self.error_message = "expected character \'X\'"
                         state = EnumStates.Error
 
                 elif state == EnumStates.Y2:
                     if _str[_pos] == 'i':
                         state = EnumStates.Y3
                     else:
+                        self.error_message = "expected character \'I\'"
                         state = EnumStates.Error
 
                 elif state == EnumStates.Y3:
                     if _str[_pos] == 't':
                         state = EnumStates.Y4
                     else:
+                        self.error_message = "expected character \'T\'"
                         state = EnumStates.Error
 
                 elif state == EnumStates.Y4:
                     if _str[_pos] == ' ' or _str[_pos] == '\t':
                         state = EnumStates.Y5
                     else:
+                        self.error_message = "expected character \'space\'"
                         state = EnumStates.Error
 
                 elif state == EnumStates.Y5:
@@ -425,18 +571,21 @@ class Anlyser:
                     elif _str[_pos] == 'f':
                         state = EnumStates.Y6
                     else:
+                        self.error_message = "expected character \'F\'"
                         state = EnumStates.Error
 
                 elif state == EnumStates.Y6:
                     if _str[_pos] == 'o':
                         state = EnumStates.Y7
                     else:
+                        self.error_message = "expected character \'O\'"
                         state = EnumStates.Error
 
                 elif state == EnumStates.Y7:
                     if _str[_pos] == 'r':
                         state = EnumStates.Y8
                     else:
+                        self.error_message = "expected character \'R\'"
                         state = EnumStates.Error
 
                 elif state == EnumStates.Y8:
@@ -445,6 +594,7 @@ class Anlyser:
                     elif _str[_pos] == '\r' or _str[_pos] == '\n':
                         state = EnumStates.Y9
                     else:
+                        self.error_message = "expected character \'space\' or end of line"
                         state = EnumStates.Error
 
                 elif state == EnumStates.Y9:
@@ -453,46 +603,59 @@ class Anlyser:
                     elif _str[_pos] == ' ' or _str[_pos] == '\t':
                         state = EnumStates.Y9
                     else:
+                        self.error_message = "expected character \'N\'"
                         state = EnumStates.Error
 
                 elif state == EnumStates.X1:
                     if _str[_pos] == 'e':
                         state = EnumStates.X2
                     else:
+                        self.error_message = "expected character \'E\'"
                         state = EnumStates.Error
 
                 elif state == EnumStates.X2:
                     if _str[_pos] == 'x':
                         state = EnumStates.X3
                     else:
+                        self.error_message = "expected character \'X\'"
                         state = EnumStates.Error
 
                 elif state == EnumStates.X3:
                     if _str[_pos] == 't':
                         state = EnumStates.X4
                     else:
+                        self.error_message = "expected character \'T\'"
                         state = EnumStates.Error
 
                 elif state == EnumStates.X4:
-                    if _str[_pos] == ' ':
+                    if _str[_pos] == ' ' or _str[_pos] == '\t':
                         state = EnumStates.Z
                     else:
+                        self.error_message = "expected character \'space\' or \'Tab\'"
                         state = EnumStates.Error
 
                 elif state == EnumStates.Z:
                     if _str[_pos] == ' ' or _str[_pos] == '\t':
                         state = EnumStates.Z
                     elif _str[_pos].isalpha():
+                        idn += _str[_pos]
                         state = EnumStates.Z1
                     else:
+                        self.error_message = "expected letter"
                         state = EnumStates.Error
 
                 elif state == EnumStates.Z1:
                     if _str[_pos] == '\n' or _str[_pos] == ';':
-                        state = EnumStates.F
+                        if self.check_ident(idn):
+                            idn =''
+                            state = EnumStates.F
+                        else:
+                            state = EnumStates.Error
                     elif _str[_pos].isalnum():
+                        idn += _str[_pos]
                         state = EnumStates.Z1
                     else:
+                        self.error_message = "expected letter or number or end of line"
                         state = EnumStates.Error
 
                 else:
@@ -500,7 +663,10 @@ class Anlyser:
 
                 _pos += 1
         if state == EnumStates.F:
-            flag = True
+            if self.inds[0] == self.inds[len(self.inds)-1]:
+                flag = True
+            else:
+                self.error_message = 'Names of identifiers following FOR and NEXT must match'
         return flag
 
 

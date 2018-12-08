@@ -112,12 +112,16 @@ if __name__ == '__main__':
     else:
         print("bad")
 '''
-    line1 = "FOR J1 = 85 TO 100 \n A = 18 * A \n EXIT FOR \n NEXT J1; "
+    line1 = "FOR J1 = 1 TO 10 STEP 1 \n q=n+1 \n EXIT FOR \n NEXT J1;  "
     an = anlyser2.Anlyser(line1)
     flag = an.control()
     if flag:
         print("good")
+        print(an.error_message)
+        print(an.inds)
+        print(an.consts)
     else:
         print("bad")
+        print(an.error_message)
 
 
