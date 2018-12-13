@@ -64,9 +64,11 @@ class Anlyser:
         self.consts = []
         self.math_oper=['+', '-', '*', '/']
         self.errors = ["Error key word", "Error inedificator", "Error const"]
-        self.error_message = "good"
+        self.error_message = "Incomplete Line"
         self._str = str
         self._pos = 0
+        self._count_iteration = 0
+        self._step_isapsent = True
 
     def check_ident(self, str):
         if (len(str) <= 8) and not (str in self.key_words):
@@ -83,10 +85,35 @@ class Anlyser:
             return True
         self.error_message = 'the number should be between -32768 and 32767'
         return False
+    def counting_iteration(self):
+        if self._step_isapsent:
+            if self.consts[1] > self.consts[0]:
+                self._count_iteration = self.consts[1]-self.consts[0]
+                if ((self.consts[0] < 0 and self.consts[1] >0)) or ((self.consts[0] > 0 and self.consts[1] <0)):
+                    self._count_iteration +=1
+            else:
+                self._count_iteration = -1
+        else:
+            if self.consts[2] > 0:
+                if self.consts[1] > self.consts[0]:
+                    t = self.consts[1] - self.consts[0]
+                    m = self.consts[2]
+                    self._count_iteration = t//m
+                    if ((self.consts[0] < 0 and self.consts[1] > 0)) or ((self.consts[0] > 0 and self.consts[1] < 0)):
+                        self._count_iteration += 1
+                else:
+                    self._count_iteration = -1
+            else:
+                if self.consts[1] < self.consts[0]:
+                    self._count_iteration = (self.consts[0] - self.consts[1])//abs(self.consts[2])
+                    if ((self.consts[0] < 0 and self.consts[1] > 0)) or ((self.consts[0] > 0 and self.consts[1] < 0)):
+                        self._count_iteration += 1
+                else:
+                    self._count_iteration = -1
 
     def control(self):
         idn = ""
-        const=""
+        const = ""
         flag = False
         state = self.EnumStates.S
         EnumStates = self.EnumStates
@@ -328,6 +355,7 @@ class Anlyser:
                 elif state == EnumStates.M4:
                     if _str[_pos] == ' ' or _str[_pos] == '\t':
                         state = EnumStates.N
+                        self._step_isapsent = False
                     else:
                         self.error_message = "expected character \'space\' or \'Tab\'"
                         state = EnumStates.Error
@@ -665,6 +693,7 @@ class Anlyser:
         if state == EnumStates.F:
             if self.inds[0] == self.inds[len(self.inds)-1]:
                 flag = True
+                self.counting_iteration()
             else:
                 self.error_message = 'Names of identifiers following FOR and NEXT must match'
         return flag
