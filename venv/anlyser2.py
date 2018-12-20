@@ -79,18 +79,18 @@ class Anlyser:
         else:
             self.error_message = 'identifier name must not match the reserved word'
         return False
+
     def check_const(self, const):
         if (int(const) > -32768) and (int(const) < 32767):
             self.consts.append(int(const))
             return True
         self.error_message = 'the number should be between -32768 and 32767'
         return False
+
     def counting_iteration(self):
         if self._step_isapsent:
             if self.consts[1] > self.consts[0]:
                 self._count_iteration = self.consts[1]-self.consts[0]
-                if ((self.consts[0] < 0 and self.consts[1] >0)) or ((self.consts[0] > 0 and self.consts[1] <0)):
-                    self._count_iteration +=1
             else:
                 self._count_iteration = -1
         else:
@@ -99,15 +99,11 @@ class Anlyser:
                     t = self.consts[1] - self.consts[0]
                     m = self.consts[2]
                     self._count_iteration = t//m
-                    if ((self.consts[0] < 0 and self.consts[1] > 0)) or ((self.consts[0] > 0 and self.consts[1] < 0)):
-                        self._count_iteration += 1
                 else:
                     self._count_iteration = -1
             else:
                 if self.consts[1] < self.consts[0]:
                     self._count_iteration = (self.consts[0] - self.consts[1])//abs(self.consts[2])
-                    if ((self.consts[0] < 0 and self.consts[1] > 0)) or ((self.consts[0] > 0 and self.consts[1] < 0)):
-                        self._count_iteration += 1
                 else:
                     self._count_iteration = -1
 
